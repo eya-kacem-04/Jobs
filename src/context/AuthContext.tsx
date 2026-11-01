@@ -45,11 +45,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  // On start: ask Supabase for the real session and the real role (from the database).
+  // Also sign the user out here if Supabase ends the session.
   useEffect(() => {
-    const session = AuthService.getCurrentUser();
-    setUser(session.user);
-    setRole(session.role);
-    setIsLoading(false);
+    let cancelled = false;
+
+    AuthService.restoreSession()
+        .then((session) => {
+          if (cancelled) return;
+          setUser(session.user);
+          setRole(session.role);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setUser(null);
+          setRole('user');
+        })
+        .finally(() => {
+          if (!cancelled) setIsLoading(false);
+        });
+
+    const stopListening = AuthService.onSignedOut(() => {
+      setUser(null);
+      setRole('user');
+    });
+
+    return () => {
+      cancelled = true;
+      stopListening();
+    };
   }, []);
 
   useEffect(() => {
@@ -107,29 +131,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        role,
-        isAuthenticated: Boolean(user),
-        isAdmin: role === 'admin',
-        isLoading,
-        favorites,
-        notifications,
-        unreadNotificationsCount,
-        login,
-        register,
-        logout,
-        updateProfile,
-        toggleFavorite,
-        isFavorite,
-        markNotificationRead,
-        markAllNotificationsRead,
-        refreshUserStats
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider
+          value={{
+            user,
+            role,
+            isAuthenticated: Boolean(user),
+            isAdmin: role === 'admin',
+            isLoading,
+            favorites,
+            notifications,
+            unreadNotificationsCount,
+            login,
+            register,
+            logout,
+            updateProfile,
+            toggleFavorite,
+            isFavorite,
+            markNotificationRead,
+            markAllNotificationsRead,
+            refreshUserStats
+          }}
+      >
+        {children}
+      </AuthContext.Provider>
   );
 };
 

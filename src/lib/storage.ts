@@ -1,48 +1,36 @@
 import { Job, RecruitmentSource, UserProfile, Favorite, AppNotification, ImportLog } from '../types';
-import { INITIAL_SEED_JOBS } from '../data/seedJobs';
 import { OFFICIAL_TUNISIAN_SOURCES } from '../constants/tunisiaData';
+import { JobRepository, isUuid } from './jobRepository';
 
 const STORAGE_KEYS = {
-  JOBS: 'tawdheef_jobs_v1',
   SOURCES: 'tawdheef_sources_v1',
   CURRENT_USER: 'tawdheef_current_user_v1',
   PROFILES: 'tawdheef_profiles_v1',
   FAVORITES: 'tawdheef_favorites_v1',
   NOTIFICATIONS: 'tawdheef_notifications_v1',
   IMPORT_LOGS: 'tawdheef_import_logs_v1',
-  INITIALIZED: 'tawdheef_initialized_v1'
+  INITIALIZED: 'tawdheef_initialized_v2'
 };
 
-// Check and sweep expired jobs automatically based on current date
+// Marks jobs whose deadline has passed as expired (display only, nothing is saved).
 const sweepExpirations = (jobs: Job[]): Job[] => {
   const todayStr = new Date().toISOString().split('T')[0];
-  let changed = false;
-
-  const updatedJobs = jobs.map(job => {
-    if (job.status === 'active' && job.applicationDeadline && job.applicationDeadline < todayStr) {
-      changed = true;
-      return { ...job, status: 'expired' as const, updatedAt: new Date().toISOString() };
-    }
-    return job;
-  });
-
-  if (changed) {
-    try {
-      localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(updatedJobs));
-    } catch (e) {
-      console.warn('Failed to update expired jobs in storage', e);
-    }
-  }
-
-  return updatedJobs;
+  return jobs.map(job =>
+      job.status === 'active' && job.applicationDeadline && job.applicationDeadline < todayStr
+          ? { ...job, status: 'expired' as const }
+          : job
+  );
 };
 
 // Initialize default storage data if not present
 export const initLocalStorage = () => {
   try {
+    // Jobs now live in Supabase: remove old local copies (they may contain demo data).
+    localStorage.removeItem('tawdheef_jobs_v1');
+    localStorage.removeItem('tawdheef_jobs_v2');
+
     const isInitialized = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
     if (!isInitialized) {
-      localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(INITIAL_SEED_JOBS));
       localStorage.setItem(STORAGE_KEYS.SOURCES, JSON.stringify(OFFICIAL_TUNISIAN_SOURCES));
       localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify([]));
@@ -56,7 +44,6 @@ export const initLocalStorage = () => {
 };
 
 // In-memory fallback if localStorage is disabled or throws
-let memoryJobs: Job[] = [...INITIAL_SEED_JOBS];
 let memorySources: RecruitmentSource[] = [...OFFICIAL_TUNISIAN_SOURCES];
 let memoryFavorites: Favorite[] = [];
 let memoryNotifications: AppNotification[] = [];
@@ -64,19 +51,9 @@ let memoryImportLogs: ImportLog[] = [];
 let memoryProfiles: Record<string, UserProfile> = {};
 
 export const LocalStore = {
-  // --- JOBS ---
+  // --- JOBS (stored in Supabase, cached in memory by JobRepository) ---
   getJobs(): Job[] {
-    try {
-      initLocalStorage();
-      const raw = localStorage.getItem(STORAGE_KEYS.JOBS);
-      if (raw) {
-        const parsed: Job[] = JSON.parse(raw);
-        return sweepExpirations(parsed);
-      }
-    } catch (e) {
-      // fallback to memory
-    }
-    return sweepExpirations(memoryJobs);
+    return sweepExpirations(JobRepository.getAll());
   },
 
   getJobById(id: string): Job | undefined {
@@ -84,51 +61,25 @@ export const LocalStore = {
   },
 
   saveJob(job: Job): Job {
-    const jobs = this.getJobs();
-    const existingIndex = jobs.findIndex(j => j.id === job.id);
-    let updated: Job[];
-
-    const preparedJob = {
+    const preparedJob: Job = {
       ...job,
+      // The database needs a real UUID as id
+      id: isUuid(job.id) ? job.id : crypto.randomUUID(),
       updatedAt: new Date().toISOString()
     };
-
-    if (existingIndex >= 0) {
-      updated = [...jobs];
-      updated[existingIndex] = preparedJob;
-    } else {
-      updated = [preparedJob, ...jobs];
-    }
-
-    try {
-      localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(updated));
-    } catch (e) {
-      memoryJobs = updated;
-    }
+    JobRepository.upsertLocal(preparedJob);
+    void JobRepository.saveRemote([preparedJob]);
     return preparedJob;
   },
 
   saveJobsBatch(newJobs: Job[]): void {
-    const existing = this.getJobs();
-    const map = new Map<string, Job>();
-    existing.forEach(j => map.set(j.id, j));
-    newJobs.forEach(j => map.set(j.id, j));
-    const merged = Array.from(map.values());
-
-    try {
-      localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(merged));
-    } catch (e) {
-      memoryJobs = merged;
-    }
+    newJobs.forEach(j => JobRepository.upsertLocal(j));
+    void JobRepository.saveRemote(newJobs);
   },
 
   deleteJob(id: string): boolean {
-    const jobs = this.getJobs().filter(j => j.id !== id);
-    try {
-      localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
-    } catch (e) {
-      memoryJobs = jobs;
-    }
+    JobRepository.removeLocal(id);
+    void JobRepository.deleteRemote(id);
     return true;
   },
 
@@ -239,8 +190,8 @@ export const LocalStore = {
       const raw = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
       const all: AppNotification[] = raw ? JSON.parse(raw) : memoryNotifications;
       return all
-        .filter(n => n.userId === userId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          .filter(n => n.userId === userId)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (e) {
       return memoryNotifications.filter(n => n.userId === userId);
     }

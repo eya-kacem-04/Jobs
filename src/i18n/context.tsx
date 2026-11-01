@@ -14,24 +14,24 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// New key: the old 'tawdheef_lang' may already contain 'fr' (saved automatically
+// in earlier versions), which would override the Arabic default.
+const STORAGE_KEY = 'tawdheef_lang_choice';
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
     try {
-      const saved = localStorage.getItem('tawdheef_lang');
-      if (saved === 'ar' || saved === 'fr') return saved;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'ar' || saved === 'fr') return saved; // only an explicit user choice
     } catch (e) {}
-    return 'fr'; // default French
+    return 'ar'; // first visit: Arabic
   });
 
   const direction: Direction = language === 'ar' ? 'rtl' : 'ltr';
   const isRTL = language === 'ar';
 
   useEffect(() => {
-    try {
-      localStorage.setItem('tawdheef_lang', language);
-    } catch (e) {}
-
-    // Update HTML attributes
+    // Update HTML attributes (does NOT save the language)
     document.documentElement.lang = language;
     document.documentElement.dir = direction;
 
@@ -42,8 +42,12 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [language, direction]);
 
+  // Save only when the user actually switches language
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch (e) {}
   };
 
   const t = (key: keyof typeof translations['fr'], params?: Record<string, string | number>): string => {
@@ -60,9 +64,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, direction, isRTL, setLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
+      <LanguageContext.Provider value={{ language, direction, isRTL, setLanguage, t }}>
+        {children}
+      </LanguageContext.Provider>
   );
 };
 

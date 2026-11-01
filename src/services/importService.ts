@@ -1,6 +1,6 @@
 import { Job, ImportLog, AcademicSectionKey, EducationLevelKey, ProfessionalCategoryKey, SectorType, JobType } from '../types';
 import { LocalStore } from '../lib/storage';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { JobRepository } from '../lib/jobRepository';
 
 export interface RawImportRecord {
   title?: string;
@@ -27,7 +27,20 @@ export interface ImportResult {
   importedJobs: Job[];
   duplicates: RawImportRecord[];
   errors: { item: RawImportRecord; reason: string }[];
+  /** Set when the jobs were valid but Supabase refused to save them. */
+  saveError?: string;
 }
+
+/** Only accept real web links (blocks things like "javascript:..."). */
+const isHttpUrl = (value?: string): boolean => {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Deduplication Engine
@@ -57,9 +70,9 @@ export const isDuplicateJob = (incoming: Partial<Job>, existingJobs: Job[]): boo
     const existingTitleNorm = normalizeStr(existing.title);
     const existingOrgNorm = normalizeStr(existing.organization || existing.company || '');
 
-    const titleExact = existingTitleNorm === incomingTitleNorm || 
-      (existingTitleNorm.length > 15 && incomingTitleNorm.length > 15 && 
-       (existingTitleNorm.includes(incomingTitleNorm) || incomingTitleNorm.includes(existingTitleNorm)));
+    const titleExact = existingTitleNorm === incomingTitleNorm ||
+        (existingTitleNorm.length > 15 && incomingTitleNorm.length > 15 &&
+            (existingTitleNorm.includes(incomingTitleNorm) || incomingTitleNorm.includes(existingTitleNorm)));
 
     const orgMatch = existingOrgNorm && incomingOrgNorm ? existingOrgNorm === incomingOrgNorm : true;
 
@@ -81,11 +94,19 @@ export const isDuplicateJob = (incoming: Partial<Job>, existingJobs: Job[]): boo
  * Normalizes raw incoming data from heterogeneous sources
  */
 export const normalizeRawRecord = (
-  raw: RawImportRecord, 
-  sourceId?: string,
-  sourceName?: string
+    raw: RawImportRecord,
+    sourceId?: string,
+    sourceName?: string
 ): Partial<Job> | null => {
-  if (!raw.title || !raw.description || (!raw.applicationUrl && !raw.sourceUrl)) {
+  const appUrl = raw.applicationUrl?.trim();
+  const srcUrl = raw.sourceUrl?.trim();
+
+  if (!raw.title || !raw.description || (!appUrl && !srcUrl)) {
+    return null;
+  }
+
+  // Links must be real http(s) links
+  if ((appUrl && !isHttpUrl(appUrl)) || (srcUrl && !isHttpUrl(srcUrl))) {
     return null;
   }
 
@@ -148,8 +169,8 @@ export const normalizeRawRecord = (
     verificationStatus: 'verified',
     sourceId: sourceId || null,
     sourceName: sourceName || 'Importation Officielle',
-    sourceUrl: raw.sourceUrl || raw.applicationUrl || 'https://www.concours.gov.tn',
-    applicationUrl: raw.applicationUrl || raw.sourceUrl || 'https://www.concours.gov.tn'
+    sourceUrl: srcUrl || appUrl || '',
+    applicationUrl: appUrl || srcUrl || ''
   };
 };
 
@@ -157,77 +178,63 @@ export const normalizeRawRecord = (
  * Executes a batch ingestion with deduplication and logging
  */
 export const runImportBatch = async (
-  records: RawImportRecord[],
-  sourceId?: string,
-  sourceName?: string,
-  importType: 'json' | 'csv' | 'rss' | 'api' | 'manual' = 'json'
+    records: RawImportRecord[],
+    sourceId?: string,
+    sourceName?: string,
+    importType: 'json' | 'csv' | 'rss' | 'api' | 'manual' = 'json'
 ): Promise<ImportResult> => {
   const existingJobs = LocalStore.getJobs();
-  const importedJobs: Job[] = [];
+  const candidates: Job[] = [];
   const duplicates: RawImportRecord[] = [];
   const errors: { item: RawImportRecord; reason: string }[] = [];
 
-  const batchId = 'batch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+  const batchId = crypto.randomUUID();
 
   for (const raw of records) {
     const normalized = normalizeRawRecord(raw, sourceId, sourceName);
     if (!normalized) {
-      errors.push({ item: raw, reason: 'Champs obligatoires manquants (titre, description, ou URL officielle)' });
+      errors.push({
+        item: raw,
+        reason: 'Champs obligatoires manquants ou lien invalide (titre, description, URL officielle en https://)'
+      });
       continue;
     }
 
-    if (isDuplicateJob(normalized, [...existingJobs, ...importedJobs])) {
+    if (isDuplicateJob(normalized, [...existingJobs, ...candidates])) {
       duplicates.push(raw);
       continue;
     }
 
     const newJob: Job = {
-      id: 'job_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+      id: crypto.randomUUID(),
       ...(normalized as any),
       importBatchId: batchId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    importedJobs.push(newJob);
+    candidates.push(newJob);
   }
 
-  // Persist imported jobs
-  if (importedJobs.length > 0) {
-    LocalStore.saveJobsBatch(importedJobs);
+  // Save to Supabase first. Only jobs that were really saved appear on the site.
+  let importedJobs: Job[] = [];
+  let saveError: string | undefined;
 
-    // If Supabase is connected, sync to PostgreSQL
-    if (isSupabaseConfigured() && supabase) {
-      try {
-        await supabase.from('jobs').insert(importedJobs.map(j => ({
-          id: j.id,
-          title: j.title,
-          organization: j.organization,
-          company: j.company,
-          description: j.description,
-          academic_section: j.academicSection,
-          education_level: j.educationLevel,
-          professional_category: j.professionalCategory,
-          sector: j.sector,
-          job_type: j.jobType,
-          governorates: j.governorates,
-          location: j.location,
-          required_skills: j.requiredSkills,
-          vacancies_count: j.vacanciesCount,
-          publication_date: j.publicationDate,
-          application_deadline: j.applicationDeadline,
-          status: j.status,
-          verification_status: j.verificationStatus,
-          source_id: j.sourceId,
-          source_url: j.sourceUrl,
-          application_url: j.applicationUrl,
-          import_batch_id: j.importBatchId
-        })));
-      } catch (err) {
-        console.warn('Supabase sync warning on import batch', err);
-      }
+  if (candidates.length > 0) {
+    const remote = await JobRepository.saveRemote(candidates, { silent: true });
+    if (remote.ok) {
+      candidates.forEach(job => JobRepository.upsertLocal(job));
+      importedJobs = candidates;
+    } else {
+      saveError = remote.error || 'Erreur inconnue';
     }
   }
+
+  const totalErrors = errors.length + (saveError ? candidates.length : 0);
+  const errorDetails = [
+    ...errors.map(e => e.reason),
+    ...(saveError ? [`Enregistrement Supabase refusé : ${saveError}`] : [])
+  ];
 
   // Create Audit Log
   const log: ImportLog = LocalStore.addImportLog({
@@ -237,16 +244,17 @@ export const runImportBatch = async (
     itemsFound: records.length,
     itemsImported: importedJobs.length,
     duplicatesDetected: duplicates.length,
-    errorsCount: errors.length,
-    errorDetails: errors.length > 0 ? errors.map(e => e.reason) : null,
-    status: errors.length === records.length ? 'failed' : (errors.length > 0 ? 'partial' : 'completed')
+    errorsCount: totalErrors,
+    errorDetails: errorDetails.length > 0 ? errorDetails : null,
+    status: importedJobs.length === 0 && totalErrors > 0 ? 'failed' : (totalErrors > 0 ? 'partial' : 'completed')
   });
 
   return {
     log,
     importedJobs,
     duplicates,
-    errors
+    errors,
+    saveError
   };
 };
 
