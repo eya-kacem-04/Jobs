@@ -1,136 +1,326 @@
 # Tawdheef TN (توظيف تونس) 🇹🇳
 ### Portail National de Recrutement & Concours Publics en Tunisie
-*Plateforme multi-sources d'agrégation, de mise en correspondance transparente et de suivi des recrutements*
+
+*Plateforme multi-sources d'agrégation, de mise en correspondance transparente et de suivi des opportunités de recrutement.*
 
 ---
 
 ## 🌟 Présentation du Projet
 
-**Tawdheef TN** est une plateforme web moderne et intuitive dédiée à l'emploi et aux concours en Tunisie. Elle résout la dispersion des offres d'emploi et des avis officiels de recrutement en regroupant en un seul lieu vérifié :
-1. **Les Concours de la Fonction Publique** (*مناظرات الوظيفة العمومية*) : Ministères, directions générales, établissements et entreprises publics (CNI, STEG, Santé, Finances, Justice...).
-2. **Les Recrutements de l'Enseignement & de l'Éducation** (*انتداب أساتذة ومعلمي قطاع التربية والتعليم*) : Enseignement primaire (instituteurs), secondaire (professeurs), supérieur (assistants & maîtres-assistants), formation professionnelle et établissements privés homologués.
+**Tawdheef TN** est une plateforme web moderne et intuitive dédiée à l'emploi et aux concours en Tunisie. Elle vise à résoudre le problème de la dispersion des offres d'emploi et des avis officiels de recrutement en regroupant les opportunités sur une seule plateforme.
+
+La plateforme couvre trois grands domaines :
+
+1. **Les Concours de la Fonction Publique** (*مناظرات الوظيفة العمومية*) : Ministères, directions générales, établissements et entreprises publics (CNI, STEG, Santé, Finances, Justice, etc.).
+2. **Les Recrutements de l'Enseignement & de l'Éducation** (*انتداب أساتذة ومعلمي قطاع التربية والتعليم*) : Enseignement primaire, secondaire, supérieur, formation professionnelle et établissements privés.
 3. **Les Opportunités du Secteur Privé** : Ingénierie, technologies de l'information, gestion, finance, comptabilité, droit, santé, industrie et agroalimentaire.
 
-Couvre l'ensemble des **24 gouvernorats tunisiens** et toutes les filières d'études universitaires et professionnelles.
+La plateforme prend en charge les **24 gouvernorats tunisiens** ainsi que différentes filières d'études universitaires et professionnelles.
 
 ---
 
-## 🎯 Points Clés & Conformité aux Exigences
+## 🎯 Fonctionnalités Principales
 
-### 1. Logique de Correspondance Factualisée (Zéro Score Arbitraire)
-- **Aucun pourcentage fictif ou trompeur** n'est affiché aux candidats (conformément aux directives).
-- La recommandation est factuelle et transparente, basée sur **5 piliers concrets** :
-  1. **Filière académique / Spécialisation** (Mathématiques, Informatique, Économie, Droit, etc.)
-  2. **Niveau d'études requis** (Secondaire, Bac, BTS, Licence, Master, Ingénieur, Doctorat)
-  3. **Catégorie de poste souhaitée** (Enseignement, Ingénierie, Administration, etc.)
-  4. **Gouvernorats préférés** (sélection parmi les 24 gouvernorats ou offre nationale)
-  5. **Compétences et mots-clés déclarés**
-- Des badges transparents indiquent à l'utilisateur exactement **pourquoi** une opportunité lui est recommandée (ex: `✓ Correspond à votre filière (Mathématiques)`, `✓ Niveau requis vérifié (Master)`, `✓ Dans votre gouvernorat (Sousse)`).
-- Le tri interne priorise les offres répondant au plus grand nombre de critères de l'utilisateur.
+### 1. Correspondance transparente entre candidats et offres
 
-### 2. Architecture Multi-Sources & Déduplication
-- Conçue comme un agrégateur multi-sources sans saisie manuelle obligatoire.
-- Connecteurs prévus pour :
-  - Portail National des Concours (`concours.gov.tn`)
-  - Ministère de l'Éducation (`edunet.tn`)
-  - Ministère de l'Enseignement Supérieur (`mesrs.tn`)
-  - ANETI (`aneti.tn`)
-  - Flux RSS, formats structurés JSON et CSV
-- **Moteur de déduplication** :
-  - Vérification par URL exacte de candidature
-  - Détection heuristique par empreinte normalisée `(Titre + Organisme/Entreprise + Période de publication)`
-- **Péremption automatique** : Dès qu'une date limite de candidature est dépassée, le statut bascule automatiquement en `expired`.
+La plateforme propose un système de recommandation basé sur des critères concrets et vérifiables, sans afficher de pourcentages arbitraires.
 
-### 3. Intégrité des Données & Transparence
-- Aucune offre, entreprise ou date limite inventée.
-- Chaque offre conserve sa **source originale officielle** et son **URL officielle de candidature**.
-- Les boutons « Postuler » redirigent directement vers la page officielle de l'organisme.
+La correspondance repose sur cinq critères :
 
-### 4. Bilinguisme Intégral & Support RTL (Français / العربية)
-- Basculement instantané entre le Français et l'Arabe.
-- Support RTL complet (`dir="rtl"`) avec inversion des mises en page, alignements, tiroirs et typographie adaptée (police *Cairo*).
-- Terminologie administrative et universitaire tunisienne authentique.
+1. **Filière académique / Spécialisation** : Mathématiques, Informatique, Économie, Droit, etc.
+2. **Niveau d'études requis** : Secondaire, Bac, BTS, Licence, Master, Ingénieur, Doctorat.
+3. **Catégorie de poste souhaitée** : Enseignement, Ingénierie, Administration, Finance, etc.
+4. **Gouvernorats préférés** : Sélection parmi les 24 gouvernorats ou offres à portée nationale.
+5. **Compétences et mots-clés déclarés**.
 
-### 5. Mode Sombre / Mode Clair
-- Thème sombre et clair soignés avec détection automatique de préférence système et persistance locale.
+Des indicateurs transparents expliquent pourquoi une offre est recommandée au candidat, par exemple :
+
+- ✓ Correspondance avec la filière académique.
+- ✓ Niveau d'études requis vérifié.
+- ✓ Opportunité disponible dans le gouvernorat souhaité.
+
+Le classement des offres privilégie celles qui répondent au plus grand nombre de critères du candidat.
+
+### 2. Agrégation multi-sources et déduplication
+
+La plateforme est conçue pour centraliser les opportunités de recrutement provenant de différentes sources.
+
+Les sources et connecteurs prévus ou pris en charge comprennent :
+
+- Portail National des Concours : [concours.gov.tn](https://concours.gov.tn/)
+- Ministère de l'Éducation : [edunet.tn](https://www.edunet.tn/)
+- Ministère de l'Enseignement Supérieur : [mesrs.tn](https://www.mesrs.tn/)
+- ANETI : [aneti.tn](https://www.aneti.tn/)
+- Flux RSS et formats structurés JSON et CSV.
+
+**Mécanisme de déduplication :**
+- Vérification par URL exacte de candidature.
+- Détection des doublons à partir d'une empreinte normalisée : Titre + Organisme/Entreprise + Période de publication.
+
+**Gestion des dates limites :**
+- Les offres dont la date limite de candidature est dépassée peuvent être automatiquement marquées comme expirées selon les mécanismes configurés.
+
+### 3. Intégrité des données et transparence
+
+Tawdheef TN vise à garantir la fiabilité des informations publiées :
+
+- Conservation de la source originale de chaque offre.
+- Référence vers l'URL officielle de candidature.
+- Redirection des candidats vers les pages officielles des organismes.
+- Distinction entre les offres vérifiées et les offres en attente de validation.
+
+### 4. Interface bilingue et support RTL (Français / العربية)
+
+- Basculement entre le français et l'arabe.
+- Prise en charge des directions LTR et RTL.
+- Adaptation des alignements, mises en page et éléments de navigation.
+- Utilisation de la police Cairo pour une meilleure lisibilité de l'arabe.
+- Terminologie administrative et universitaire tunisienne.
+
+### 5. Mode sombre et mode clair
+
+- Interface avec thème sombre et thème clair.
+- Détection de la préférence système.
+- Conservation locale du thème sélectionné.
+
+### 6. Gestion des utilisateurs et des favoris
+
+- Authentification des utilisateurs.
+- Gestion des profils candidats.
+- Gestion des rôles et des autorisations.
+- Ajout et consultation des offres favorites.
+- Protection des données personnelles grâce aux politiques de sécurité RLS.
 
 ---
 
 ## 🛠️ Stack Technologique
 
-- **Frontend** : React 19, TypeScript, Vite, Tailwind CSS, Lucide React
-- **Internationalisation** : LanguageContext dynamique avec support RTL/LTR natif
-- **Base de Données & Backend** : PostgreSQL / Supabase
-  - Schéma complet avec Row Level Security (RLS) dans `supabase/schema.sql`
-  - Données initiales et sources officielles dans `supabase/seed.sql`
-  - Mode hors-ligne / démonstration instantané avec persistance locale dans `src/lib/storage.ts`
-- **Tests** : Vitest (12 tests unitaires validant la correspondance transparente, l'ingestion, la déduplication et l'i18n)
+### Frontend
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- Lucide React
+
+### Internationalisation
+- LanguageContext
+- Support natif RTL / LTR
+- Français et arabe
+
+### Base de données et Backend
+- PostgreSQL
+- Supabase
+- Supabase Auth
+- Row Level Security (RLS)
+- Fonctions backend Supabase Edge Functions
+
+### Stockage et mode hors ligne
+- Persistance locale via `src/lib/storage.ts`
+- Mode démonstration avec stockage local.
+
+### Tests
+- Vitest
+- Tests unitaires portant sur la correspondance, l'ingestion, la déduplication et l'internationalisation.
 
 ---
 
 ## 🚀 Démarrage Rapide
 
-### 1. Installation des dépendances
+### Prérequis
+
+Avant de commencer, assurez-vous d'avoir installé :
+
+- Node.js
+- npm ou pnpm
+- Git
+
+### 1. Cloner le dépôt
+
 ```bash
-pnpm install
-# ou
+git clone https://github.com/eya-kacem-04/Jobs.git
+cd Jobs
+```
+
+### 2. Installer les dépendances
+
+Avec npm :
+
+```bash
 npm install
 ```
 
-### 2. Lancement en mode développement
+Ou avec pnpm :
+
 ```bash
-pnpm run dev
-# ou
+pnpm install
+```
+
+### 3. Configurer les variables d'environnement
+
+Créez un fichier `.env` à la racine du projet :
+
+```env
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_ANON_KEY=votre-cle-anon
+```
+
+Remplacez les valeurs par les informations de votre propre projet Supabase.
+
+**Important :** Ne publiez jamais votre fichier `.env` ou vos clés privées sur GitHub.
+
+### 4. Lancer le serveur de développement
+
+Avec npm :
+
+```bash
 npm run dev
 ```
-L'application est accessible sur `http://localhost:5173`.
 
-### 3. Lancement des tests automatisés
+Ou avec pnpm :
+
+```bash
+pnpm run dev
+```
+
+L'application sera accessible à l'adresse :
+
+```text
+http://localhost:5173
+```
+
+### 5. Exécuter les tests
+
+```bash
+npm run test
+```
+
+Ou :
+
 ```bash
 pnpm test
 ```
 
-### 4. Build de production
+### 6. Générer le build de production
+
+Avec npm :
+
+```bash
+npm run build
+```
+
+Ou avec pnpm :
+
 ```bash
 pnpm run build
 ```
-Les fichiers statiques optimisés sont générés dans le dossier `dist/`.
+
+Les fichiers optimisés seront générés dans le dossier `dist/`.
 
 ---
 
-## 🔑 Comptes de Démonstration Inclus
+## 🔑 Comptes de Démonstration
 
-| Rôle | Email | Mot de passe | Profil & Spécialité |
-|---|---|---|---|
-| **Administrateur** | `admin@tawdheef.tn` | `admin123` | Accès complet au studio admin, importateur et validation |
-| **Candidat Enseignement** | `anis.math@tawdheef.tn` | `anis123` | Master en Mathématiques, Sousse, Enseignement |
-| **Candidate Ingénierie** | `yasmine.dev@tawdheef.tn` | `yasmine123` | Diplôme National d'Ingénieur en Informatique, Tunis, IT & Dev |
+La plateforme propose différents rôles permettant de découvrir ses fonctionnalités :
+
+- **Administrateur :** Gestion des utilisateurs, validation des offres, importation et administration de la plateforme.
+- **Candidat :** Consultation des offres, recherche personnalisée, gestion du profil et des favoris.
+
+Des comptes de démonstration peuvent être configurés dans un environnement de test. Pour des raisons de sécurité, les identifiants et mots de passe ne sont pas publiés dans ce dépôt.
 
 ---
 
 ## 🗄️ Schéma PostgreSQL (Supabase)
 
-Le fichier `supabase/schema.sql` contient :
-- Tables : `jobs`, `sources`, `profiles`, `user_roles`, `favorites`, `notifications`, `import_logs`
-- Politiques RLS assurant que les offres actives et vérifiées sont publiques, tandis que les profils et favoris sont protégés par utilisateur
-- Triggers d'expiration automatique des offres dont la date limite est échue
-- Triggers de création automatique de profil lors de l'inscription via Supabase Auth
+Le dossier `supabase/` contient les scripts et configurations nécessaires à la gestion de la base de données.
 
-Pour connecter un projet Supabase distant :
-1. Créez un projet sur [supabase.com](https://supabase.com).
-2. Exécutez le script `supabase/schema.sql` dans l'éditeur SQL de Supabase, puis `supabase/seed.sql`.
-3. Renseignez dans votre fichier `.env` :
-   ```env
-   VITE_SUPABASE_URL=https://votre-projet.supabase.co
-   VITE_SUPABASE_ANON_KEY=votre-cle-anon
-   ```
+Le fichier `supabase/schema.sql` définit notamment :
+
+- `jobs` : Offres d'emploi et opportunités de recrutement.
+- `sources` : Sources des offres.
+- `profiles` : Profils des utilisateurs.
+- `user_roles` : Rôles et autorisations.
+- `favorites` : Offres favorites des candidats.
+- `notifications` : Notifications des utilisateurs.
+- `import_logs` : Historique des opérations d'importation.
+
+### Sécurité et intégrité
+
+Le schéma prévoit notamment :
+
+- Des politiques Row Level Security (RLS) pour contrôler l'accès aux données.
+- La protection des profils et des favoris selon l'utilisateur authentifié.
+- La visibilité publique des offres répondant aux conditions de publication définies.
+- Des mécanismes de gestion de l'expiration des offres.
+- La création automatique des profils lors de l'inscription via Supabase Auth.
+
+### Configuration d'un projet Supabase distant
+
+1. Créer un projet sur [Supabase](https://supabase.com/).
+2. Ouvrir l'éditeur SQL de Supabase.
+3. Exécuter le script `supabase/schema.sql`.
+4. Exécuter ensuite `supabase/seed.sql` pour initialiser les données prévues.
+5. Configurer les variables d'environnement dans le fichier `.env`.
 
 ---
 
-## 🌐 Déploiement Public en Production
+## 🌐 Déploiement
 
-Le projet est 100% prêt pour un déploiement public immédiat sur toute plateforme statique ou cloud :
-- **Vercel** : Connectez le dépôt Git, commande de build `npm run build`, dossier de sortie `dist`.
-- **Netlify** : Glissez-déposez le dossier `dist` ou connectez votre dépôt.
-- **Cloudflare Pages** : Build command `npm run build`, output directory `dist`.
-- **Supabase Hosting** : Prêt pour héberger le frontend et le backend.
+Le frontend peut être déployé sur différentes plateformes d'hébergement :
+
+### Vercel
+- Connecter le dépôt GitHub.
+- Commande de build : `npm run build`.
+- Dossier de sortie : `dist`.
+- Configurer les variables d'environnement Supabase.
+
+### Netlify
+- Connecter le dépôt GitHub ou déployer le dossier `dist`.
+- Commande de build : `npm run build`.
+- Configurer les variables d'environnement nécessaires.
+
+### Cloudflare Pages
+- Connecter le dépôt GitHub.
+- Commande de build : `npm run build`.
+- Dossier de sortie : `dist`.
+- Configurer les variables d'environnement.
+
+### Backend et base de données
+
+**Supabase** assure les services backend :
+
+- Base de données PostgreSQL.
+- Authentification.
+- Politiques de sécurité RLS.
+- Fonctions backend Edge Functions.
+
+---
+
+## 🔒 Sécurité
+
+Quelques bonnes pratiques sont appliquées au projet :
+
+- Les fichiers `.env` sont exclus du dépôt Git grâce au `.gitignore`.
+- Les clés privées et les secrets ne doivent jamais être publiés.
+- Les accès aux données sont contrôlés par les politiques RLS.
+- Les informations personnelles des utilisateurs doivent rester protégées.
+- Les comptes de démonstration doivent être utilisés uniquement dans un environnement de test.
+
+---
+
+## 📌 Objectif du Projet
+
+L'objectif de **Tawdheef TN** est de faciliter l'accès aux opportunités professionnelles en Tunisie en centralisant les offres d'emploi et les concours, tout en proposant une expérience de recherche personnalisée, transparente et accessible à tous.
+
+La plateforme ambitionne de devenir un point de référence pour les candidats à la recherche d'un emploi ou d'une opportunité de recrutement dans les secteurs public et privé.
+
+---
+
+## 👩‍💻 Auteur
+
+**Eya Kacem**
+
+GitHub : [@eya-kacem-04](https://github.com/eya-kacem-04)
+
+---
+
+*© Tawdheef TN – Portail de Recrutement & Concours en Tunisie 🇹🇳*
